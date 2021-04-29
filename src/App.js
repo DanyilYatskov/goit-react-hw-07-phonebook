@@ -3,23 +3,32 @@ import React, { Component } from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { connect } from 'react-redux';
+import contactsSelectors from './redux/contacts/contactsSelectors';
+import contactsOperations from './redux/contacts/contactsOperations';
 import Form from './components/Form';
 import Section from './components/Section/';
 import ContactsList from './components/ContactList/';
 import Notification from './components/Notification/';
 import Filter from './components/Filter/';
+import Loader from './components/Loader';
 
 class App extends Component {
+  componentDidMount() {
+    this.props.fetchContacts();
+  }
   render() {
-    const { contacts } = this.props;
+    const { contacts, isLoading } = this.props;
+
     return (
       <div className="App">
         <Section title="Phonebook">
           <Form />
         </Section>
+
         {contacts.length > 0 ? (
           <Section title="Contacts">
             <Filter />
+            {isLoading && <Loader />}
             <ContactsList />
           </Section>
         ) : (
@@ -31,8 +40,12 @@ class App extends Component {
   }
 }
 
-const mapStateToProps = ({ contacts: { contacts } }) => ({
-  contacts: contacts,
+const mapStateToProps = state => ({
+  contacts: contactsSelectors.getContacts(state),
+  isLoading: contactsSelectors.getLoading(state),
 });
 
-export default connect(mapStateToProps, null)(App);
+const mapDispatchToProps = dispatch => ({
+  fetchContacts: () => dispatch(contactsOperations.fetchContacts()),
+});
+export default connect(mapStateToProps, mapDispatchToProps)(App);

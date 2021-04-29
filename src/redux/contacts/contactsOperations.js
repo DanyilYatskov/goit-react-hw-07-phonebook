@@ -1,5 +1,7 @@
 import axios from 'axios';
-import {
+import { toast } from 'react-toastify';
+import contactsActions from './contactsActions';
+const {
   fetchContactsRequest,
   fetchContactsSuccess,
   fetchContactsError,
@@ -9,8 +11,28 @@ import {
   deleteContactRequest,
   deleteContactSuccess,
   deleteContactError,
-  changeFilter,
-} from './contactsActions';
+} = contactsActions;
+
+const checkIfContactExists = (contacts, newContact) => {
+  const contactFound = contacts.find(
+    contact => contact.name.toLowerCase() === newContact.name.toLowerCase(),
+  );
+  if (contactFound !== undefined) {
+    const notify = () =>
+      toast.error(`${newContact.name} is already in contacts`, {
+        position: 'top-center',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    notify();
+    return true;
+  }
+  return false;
+};
 
 axios.defaults.baseURL = 'http://localhost:4040';
 
@@ -18,61 +40,43 @@ const fetchContacts = () => async dispatch => {
   dispatch(fetchContactsRequest());
   try {
     const { data } = await axios.get('/contacts');
-
     dispatch(fetchContactsSuccess(data));
   } catch (error) {
     dispatch(fetchContactsError(error));
   }
-  // axios
-  //   .get('/todos')
-  //   .then(({ data }) => dispatch(fetchTodosSuccess(data)))
-  //   .catch(error => dispatch(fetchTodosError(error)));
 };
 
-const addNewContact = ({ name, number }) => async dispatch => {
+const addNewContact = (name, number) => dispatch => {
   const newContact = {
     name,
     number,
   };
-
   dispatch(addContactRequest());
-  try {
-    const { data } = await axios.post('/contacts', newContact);
-    dispatch(addContactSuccess(data));
-  } catch (error) {
-    dispatch(addContactError(error));
-  }
-
-  //   axios
-  //     .post('/todos', todo)
-  //     .then(({ data }) => dispatch(addTodoSuccess(data)))
-  //     .catch(error => dispatch(addTodoError(error)));
+  axios
+    .get('/contacts')
+    .then(response => {
+      const oldContacts = response.data;
+      if (checkIfContactExists(oldContacts, newContact) === true) return;
+      axios
+        .post('/contacts', newContact)
+        .then(({ data }) => dispatch(addContactSuccess(data)));
+    })
+    .catch(error => dispatch(addContactError(error)));
 };
 
-const deleteContact = todoId => async dispatch => {
+const deleteContact = id => async dispatch => {
   dispatch(deleteContactRequest());
-
-  axios
-    .delete(`/todos/${todoId}`)
-    .then(() => dispatch(deleteTodoSuccess(todoId)))
-    .catch(error => dispatch(deleteTodoError(error)));
+  try {
+    await axios.delete(`/contacts/${id}`);
+    dispatch(deleteContactSuccess(id));
+  } catch (error) {
+    dispatch(deleteContactError(error));
+  }
 };
 
-const toggleCompleted = ({ id, completed }) => dispatch => {
-  const update = { completed };
-
-  dispatch(toggleCompletedRequest());
-
-  axios
-    .patch(`/todos/${id}`, update)
-    .then(({ data }) => dispatch(toggleCompletedSuccess(data)))
-    .catch(error => dispatch(toggleCompletedError(error)));
+const contactsOperations = {
+  deleteContact,
+  addNewContact,
+  fetchContacts,
 };
-
-const exportObj = {
-  fetchTodos,
-  addTodo,
-  deleteTodo,
-  toggleCompleted,
-};
-export default exportObj;
+export default contactsOperations;

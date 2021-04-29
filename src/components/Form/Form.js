@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { connect } from 'react-redux';
-import contactsActions from '../../redux/contacts/contactsActions';
+import contactsOperations from '../../redux/contacts/contactsOperations';
 import Input from './Input/';
 import Button from './Button/';
 import styles from './form.module.scss';
@@ -62,7 +62,7 @@ class Form extends Component {
 
 const mapDispatchToProps = dispatch => ({
   onSubmit: ({ name, number }) =>
-    dispatch(contactsActions.addContact(name, number)),
+    dispatch(contactsOperations.addNewContact(name, number)),
 });
 
 export default connect(null, mapDispatchToProps)(Form);
