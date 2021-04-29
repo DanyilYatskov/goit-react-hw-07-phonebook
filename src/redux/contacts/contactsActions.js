@@ -13,16 +13,6 @@ const deleteContactRequest = createAction('contacts/deleteContactRequest');
 const deleteContactSuccess = createAction('contacts/deleteContactSuccess');
 const deleteContactError = createAction('contacts/deleteContactError');
 
-// const addContact = createAction('contacts/add', (name, number) => ({
-//   payload: {
-//     id: uuidv4(),
-//     name: name,
-//     number: number,
-//   },
-// }));
-
-// const deleteContact = createAction('contacts/delete');
-
 const changeFilter = createAction('contacts/changeFilter');
 
 const contactsActions = {
